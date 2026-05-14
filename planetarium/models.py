@@ -2,12 +2,6 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 
-class PlanetariumDome(models.Model):
-    name = models.CharField(max_length=125)
-    rows = models.IntegerField()
-    seats_in_row = models.IntegerField()
-
-
 class ShowTheme(models.Model):
     name = models.CharField(max_length=125)
 
@@ -16,6 +10,12 @@ class AstronomyShow(models.Model):
     title = models.CharField(max_length=125)
     description = models.TextField(max_length=500)
     theme = models.ManyToManyField(ShowTheme)
+
+
+class PlanetariumDome(models.Model):
+    name = models.CharField(max_length=125)
+    rows = models.IntegerField()
+    seats_in_row = models.IntegerField()
 
 
 class ShowSession(models.Model):
