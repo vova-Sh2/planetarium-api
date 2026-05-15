@@ -19,15 +19,22 @@ class ShowThemeSerializer(serializers.ModelSerializer):
 class AstronomyShowSerializer(serializers.ModelSerializer):
     class Meta:
         model = AstronomyShow
-        fields = ("id", "title", "description")
+        fields = ("id", "title", "description", "theme")
 
 
 class AstronomyShowListSerializer(AstronomyShowSerializer):
-        show_theme = serializers.SlugRelatedField(many=True, read_only=True, slug_field="theme.name")
+        theme = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
 
         class Meta:
             model = AstronomyShow
-            fields = ("id", "title", "description", "show_theme")
+            fields = ("id", "title", "description", "theme")
+
+
+class AstronomyShowDetailSerializer(AstronomyShowSerializer):
+    theme = ShowThemeSerializer(many=True, read_only=True)
+    class Meta:
+        model = AstronomyShow
+        fields = ("id", "title", "description", "theme")
 
 
 class PlanetariumDomeSerializer(serializers.ModelSerializer):
@@ -59,11 +66,25 @@ class ShowSessionListSerializer(ShowSessionSerializer):
         fields = ("id", "show_time", "show_title", "planetarium_dome_name", "planetarium_dome_capacity", "tickets_available")
 
 
-
 class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "show_session")
+
+
+class TicketSeatsSerializer(TicketSerializer):
+    class Meta:
+        model = Ticket
+        fields = ("row", "seat")
+
+
+class ShowSessionDetailSerializer(ShowSessionSerializer):
+    astronomy_show = AstronomyShowListSerializer(many=False, read_only=True)
+    planetarium_dome = PlanetariumDomeListSerializer(many=False, read_only=True)
+    taken_places = TicketSeatsSerializer(source="tickets", many=True, read_only=True)
+    class Meta:
+        model = ShowSession
+        fields = ("id", "show_time", "astronomy_show", "planetarium_dome", "taken_places")
 
 
 class TicketListSerializer(TicketSerializer):

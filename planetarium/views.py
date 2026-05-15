@@ -1,5 +1,5 @@
 from django.db.models import Count, F, ExpressionWrapper, IntegerField
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 
 from planetarium.models import (
     ShowTheme,
@@ -15,26 +15,42 @@ from planetarium.serializers import (
     PlanetariumDomeSerializer,
     ShowSessionSerializer,
     ReservationSerializer,
-    ShowSessionListSerializer, AstronomyShowListSerializer, PlanetariumDomeListSerializer, ReservationListSerializer
+    ShowSessionListSerializer, AstronomyShowListSerializer, PlanetariumDomeListSerializer, ReservationListSerializer,
+    AstronomyShowDetailSerializer, ShowSessionDetailSerializer
 )
 
 
-class ShowThemeViewSet(viewsets.ModelViewSet):
+class ShowThemeViewSet(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin
+):
     queryset = ShowTheme.objects.all()
     serializer_class = ShowThemeSerializer
 
 
-class AstronomyShowViewSet(viewsets.ModelViewSet):
+class AstronomyShowViewSet(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+):
     queryset = AstronomyShow.objects.all()
     serializer_class = AstronomyShowSerializer
 
     def get_serializer_class(self):
         if self.action == "list":
             return AstronomyShowListSerializer
+        if self.action == "retrieve":
+            return AstronomyShowDetailSerializer
         return AstronomyShowSerializer
 
 
-class PlanetariumDomeViewSet(viewsets.ModelViewSet):
+class PlanetariumDomeViewSet(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+):
     queryset = PlanetariumDome.objects.all()
     serializer_class = PlanetariumDomeSerializer
 
@@ -62,10 +78,16 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return ShowSessionListSerializer
+        if self.action == "retrieve":
+            return ShowSessionDetailSerializer
         return ShowSessionSerializer
 
 
-class ReservationViewSet(viewsets.ModelViewSet):
+class ReservationViewSet(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
 
