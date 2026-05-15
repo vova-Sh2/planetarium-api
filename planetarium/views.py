@@ -1,4 +1,6 @@
-from django.db.models import Count, F, ExpressionWrapper, IntegerField
+from datetime import datetime
+
+from django.db.models import Count, F
 from rest_framework import viewsets, mixins
 
 from planetarium.models import (
@@ -7,7 +9,6 @@ from planetarium.models import (
     PlanetariumDome,
     ShowSession,
     Reservation,
-    Ticket,
 )
 from planetarium.serializers import (
     ShowThemeSerializer,
@@ -45,6 +46,25 @@ class AstronomyShowViewSet(
             return AstronomyShowDetailSerializer
         return AstronomyShowSerializer
 
+    @staticmethod
+    def _params_to_ints(qs):
+        """Converts a list of string IDs to a list of integers"""
+        return [int(str_id) for str_id in qs.split(",")]
+
+    def get_queryset(self):
+        """Retrieve the astronomy show with filters"""
+        title = self.request.query_params.get("title")
+        themes = self.request.query_params.get("themes")
+
+        queryset = self.queryset
+
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        if themes:
+            themes_ids = self._params_to_ints(themes)
+            queryset = queryset.filter(themes__id__in=themes_ids)
+        return queryset
+
 
 class PlanetariumDomeViewSet(
     viewsets.GenericViewSet,
@@ -62,18 +82,24 @@ class PlanetariumDomeViewSet(
 
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
-    queryset = ShowSession.objects.all()
+    queryset = ShowSession.objects.all().annotate(tickets_available=(
+                F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
+                - Count("tickets", distinct=True)))
     serializer_class = ShowSessionSerializer
 
     def get_queryset(self):
-        return ShowSession.objects.annotate(
-            tickets_available=(
-                F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
-                - Count("tickets")
-            )
-        )
+        date = self.request.query_params.get("date")
+        show_id_str = self.request.query_params.get("show")
 
+        queryset = self.queryset
 
+        if date:
+            date = datetime.strptime(date, "%Y-%m-%d").date()
+            queryset = queryset.filter(show_time__data=date)
+        if show_id_str:
+            queryset = queryset.filter(astronomy_show_id=int(show_id_str))
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "list":

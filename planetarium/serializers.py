@@ -22,22 +22,22 @@ class ShowThemeSerializer(serializers.ModelSerializer):
 class AstronomyShowSerializer(serializers.ModelSerializer):
     class Meta:
         model = AstronomyShow
-        fields = ("id", "title", "description", "theme")
+        fields = ("id", "title", "description", "themes")
 
 
 class AstronomyShowListSerializer(AstronomyShowSerializer):
-        theme = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+        themes = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
 
         class Meta:
             model = AstronomyShow
-            fields = ("id", "title", "description", "theme")
+            fields = ("id", "title", "description", "themes")
 
 
 class AstronomyShowDetailSerializer(AstronomyShowSerializer):
-    theme = ShowThemeSerializer(many=True, read_only=True)
+    themes = ShowThemeSerializer(many=True, read_only=True)
     class Meta:
         model = AstronomyShow
-        fields = ("id", "title", "description", "theme")
+        fields = ("id", "title", "description", "themes")
 
 
 class PlanetariumDomeSerializer(serializers.ModelSerializer):
