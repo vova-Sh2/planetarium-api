@@ -1,3 +1,6 @@
+from django.utils import timezone
+
+from django.db import transaction
 from rest_framework import serializers
 
 from planetarium.models import (
@@ -54,6 +57,11 @@ class ShowSessionSerializer(serializers.ModelSerializer):
         model = ShowSession
         fields = ("id", "astronomy_show", "planetarium_dome", "show_time")
 
+    def validate_show_time(self, data):
+        if data < timezone.now():
+            raise serializers.ValidationError("Show time must be in the future")
+        return data
+
 
 class ShowSessionListSerializer(ShowSessionSerializer):
     show_title = serializers.CharField(source="astronomy_show.title")
@@ -70,6 +78,11 @@ class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = ("id", "row", "seat", "show_session")
+
+    def validate_ticket(self, attrs):
+        data = super(TicketSerializer, self).validate(attrs=attrs)
+        Ticket.validate_ticket(attrs["row"], data["seat"], data["show_session"])
+        return data
 
 
 class TicketSeatsSerializer(TicketSerializer):
@@ -99,11 +112,12 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = ("id", "tickets", "created_at")
 
     def create(self, validated_data):
-        tickets_data = validated_data.pop("tickets")
-        reservation = Reservation.objects.create(**validated_data)
-        for ticket in tickets_data:
-            Ticket.objects.create(reservation=reservation, **ticket)
-        return reservation
+        with transaction.atomic():
+            tickets_data = validated_data.pop("tickets")
+            reservation = Reservation.objects.create(**validated_data)
+            for ticket in tickets_data:
+                Ticket.objects.create(reservation=reservation, **ticket)
+            return reservation
 
 
 class ReservationListSerializer(ReservationSerializer):
