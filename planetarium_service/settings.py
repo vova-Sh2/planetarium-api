@@ -128,4 +128,9 @@ AUTH_USER_MODEL = "user.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication"],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "planetarium.throttles.AdminOrUserThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {"anon": "10/day", "user": "3/day", "admin": "1000/day"},
 }
