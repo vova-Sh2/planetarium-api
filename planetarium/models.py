@@ -1,6 +1,11 @@
+import os
+import uuid
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.core import exceptions
+from django.template.defaultfilters import slugify
+
 
 class ShowTheme(models.Model):
     name = models.CharField(max_length=125)
@@ -9,10 +14,18 @@ class ShowTheme(models.Model):
         return self.name
 
 
+def movie_image_file_path(instance, filename):
+    _, extension = os.path.splitext(filename)
+    filename = f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
+
+    return os.path.join("uploads/astronomy_show/", filename)
+
+
 class AstronomyShow(models.Model):
     title = models.CharField(max_length=125)
     description = models.TextField(max_length=500)
     themes = models.ManyToManyField(ShowTheme, related_name="shows")
+    poster_image = models.ImageField(upload_to=movie_image_file_path, null=True)
 
     def __str__(self):
         return self.title

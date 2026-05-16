@@ -1,9 +1,12 @@
 from datetime import datetime
 
+from django.contrib.admin import action
 from django.db.models import Count, F
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from planetarium.models import (
     ShowTheme,
@@ -20,7 +23,7 @@ from planetarium.serializers import (
     ShowSessionSerializer,
     ReservationSerializer,
     ShowSessionListSerializer, AstronomyShowListSerializer, PlanetariumDomeListSerializer, ReservationListSerializer,
-    AstronomyShowDetailSerializer, ShowSessionDetailSerializer
+    AstronomyShowDetailSerializer, ShowSessionDetailSerializer, AstronomyShowImageSerializer
 )
 
 
@@ -49,6 +52,8 @@ class AstronomyShowViewSet(
             return AstronomyShowListSerializer
         if self.action == "retrieve":
             return AstronomyShowDetailSerializer
+        if self.action == "upload_image":
+            return AstronomyShowImageSerializer
         return AstronomyShowSerializer
 
     @staticmethod
@@ -69,6 +74,21 @@ class AstronomyShowViewSet(
             themes_ids = self._params_to_ints(themes)
             queryset = queryset.filter(themes__id__in=themes_ids)
         return queryset
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+        permission_classes=[IsAdminUser],
+    )
+    def upload_image(self, request, pk=None):
+        astronomy_show = self.get_object()
+        serializer = self.get_serializer(astronomy_show, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class PlanetariumDomeViewSet(
