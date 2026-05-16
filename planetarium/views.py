@@ -40,7 +40,7 @@ class AstronomyShowViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
 ):
-    queryset = AstronomyShow.objects.all()
+    queryset = AstronomyShow.objects.prefetch_related("themes")
     serializer_class = AstronomyShowSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
@@ -88,9 +88,15 @@ class PlanetariumDomeViewSet(
 
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
-    queryset = ShowSession.objects.all().annotate(tickets_available=(
-                F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
-                - Count("tickets", distinct=True)))
+    queryset = (ShowSession.objects
+    .select_related("astronomy_show", "planetarium_dome")
+    .annotate(tickets_available=(
+            F("planetarium_dome__rows")
+            * F("planetarium_dome__seats_in_row")
+            - Count("tickets", distinct=True)
+    )
+    )
+    )
     serializer_class = ShowSessionSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
@@ -126,7 +132,7 @@ class ReservationViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
 ):
-    queryset = Reservation.objects.all()
+    queryset = Reservation.objects
     serializer_class = ReservationSerializer
     pagination_class = ReservationPagination
     permission_classes = (IsAuthenticated,)
@@ -137,7 +143,13 @@ class ReservationViewSet(
         return ReservationSerializer
 
     def get_queryset(self):
-        return Reservation.objects.filter(user=self.request.user)
+        return (Reservation.objects
+                .filter(user=self.request.user)
+                .prefetch_related(
+            "tickets__show_session__astronomy_show",
+            "tickets__show_session__planetarium_dome"
+        )
+                )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

@@ -22,4 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/planetarium/", include("planetarium.urls"), name="planetarium"),
     path("api/user/", include("user.urls"), name="user"),
+    path("__debug__/", include("debug_toolbar.urls"), name="debug_toolbar"),
 ]
