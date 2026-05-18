@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from user.models import User
 from planetarium.models import (
     AstronomyShow,
     ShowTheme,
@@ -16,5 +15,3 @@ admin.site.register(ShowSession)
 admin.site.register(PlanetariumDome)
 admin.site.register(Ticket)
 admin.site.register(Reservation)
-
-admin.site.register(User)
