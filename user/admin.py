@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.admin.templatetags.log import get_admin_log
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext as _
 from django.contrib.auth import get_user_model
