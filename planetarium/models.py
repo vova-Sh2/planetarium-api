@@ -45,9 +45,14 @@ class PlanetariumDome(models.Model):
 
 
 class ShowSession(models.Model):
-    astronomy_show = models.ForeignKey(AstronomyShow, on_delete=models.CASCADE, related_name="shows_sessions")
-    planetarium_dome = models.ForeignKey(PlanetariumDome, on_delete=models.CASCADE, related_name="shows_sessions")
+    astronomy_show = models.ForeignKey(
+        AstronomyShow, on_delete=models.CASCADE, related_name="shows_sessions"
+    )
+    planetarium_dome = models.ForeignKey(
+        PlanetariumDome, on_delete=models.CASCADE, related_name="shows_sessions"
+    )
     show_time = models.DateTimeField()
+
     def __str__(self):
         return f"{self.astronomy_show.title} - {self.planetarium_dome.name}"
 
@@ -57,7 +62,9 @@ class ShowSession(models.Model):
 
 class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="reservations")
+    user = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, related_name="reservations"
+    )
 
     def __str__(self):
         return f"{self.user} - {self.created_at}"
@@ -66,8 +73,12 @@ class Reservation(models.Model):
 class Ticket(models.Model):
     row = models.IntegerField()
     seat = models.IntegerField()
-    show_session = models.ForeignKey(ShowSession, on_delete=models.CASCADE, related_name="tickets")
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="tickets")
+    show_session = models.ForeignKey(
+        ShowSession, on_delete=models.CASCADE, related_name="tickets"
+    )
+    reservation = models.ForeignKey(
+        Reservation, on_delete=models.CASCADE, related_name="tickets"
+    )
 
     @staticmethod
     def validate_ticket(row, seat, hall, error=exceptions.ValidationError):
@@ -81,11 +92,7 @@ class Ticket(models.Model):
 
             if not (1 <= value <= max_value):
                 raise error(
-                    {
-                        field_name: (
-                            f"{field_name} must be between 1 and {max_value}"
-                        )
-                    }
+                    {field_name: (f"{field_name} must be between 1 and {max_value}")}
                 )
 
     def clean(self):
@@ -107,4 +114,4 @@ class Ticket(models.Model):
         return f"{self.row} - {self.seat}"
 
     class Meta:
-        unique_together = ("show_session","row", "seat")
+        unique_together = ("show_session", "row", "seat")

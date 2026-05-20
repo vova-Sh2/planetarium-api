@@ -23,15 +23,18 @@ from planetarium.serializers import (
     PlanetariumDomeSerializer,
     ShowSessionSerializer,
     ReservationSerializer,
-    ShowSessionListSerializer, AstronomyShowListSerializer, PlanetariumDomeListSerializer, ReservationListSerializer,
-    AstronomyShowDetailSerializer, ShowSessionDetailSerializer, AstronomyShowImageSerializer
+    ShowSessionListSerializer,
+    AstronomyShowListSerializer,
+    PlanetariumDomeListSerializer,
+    ReservationListSerializer,
+    AstronomyShowDetailSerializer,
+    ShowSessionDetailSerializer,
+    AstronomyShowImageSerializer,
 )
 
 
 class ShowThemeViewSet(
-    viewsets.GenericViewSet,
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin
+    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin
 ):
     queryset = ShowTheme.objects.all()
     serializer_class = ShowThemeSerializer
@@ -102,7 +105,7 @@ class AstronomyShowViewSet(
                 "title",
                 type=OpenApiTypes.STR,
                 description="Filter by astronomy show title (ex. ?title=mars",
-            )
+            ),
         ]
     )
     def list(self, request, *args, **kwargs):
@@ -127,14 +130,13 @@ class PlanetariumDomeViewSet(
 
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
-    queryset = (ShowSession.objects
-    .select_related("astronomy_show", "planetarium_dome")
-    .annotate(tickets_available=(
-            F("planetarium_dome__rows")
-            * F("planetarium_dome__seats_in_row")
+    queryset = ShowSession.objects.select_related(
+        "astronomy_show", "planetarium_dome"
+    ).annotate(
+        tickets_available=(
+            F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
             - Count("tickets", distinct=True)
-    )
-    )
+        )
     )
     serializer_class = ShowSessionSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
@@ -169,13 +171,13 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
             OpenApiParameter(
                 "date",
                 type=OpenApiTypes.STR,
-                description="Filter by show session date (ex. ?date=2026-07-23)"
+                description="Filter by show session date (ex. ?date=2026-07-23)",
             ),
             OpenApiParameter(
                 "show",
                 type=OpenApiTypes.INT,
                 description="Filter by astronomy show id (ex. ?show=1)",
-            )
+            ),
         ]
     )
     def list(self, request, *args, **kwargs):
@@ -204,13 +206,10 @@ class ReservationViewSet(
         return ReservationSerializer
 
     def get_queryset(self):
-        return (Reservation.objects
-                .filter(user=self.request.user)
-                .prefetch_related(
+        return Reservation.objects.filter(user=self.request.user).prefetch_related(
             "tickets__show_session__astronomy_show",
-            "tickets__show_session__planetarium_dome"
+            "tickets__show_session__planetarium_dome",
         )
-                )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
