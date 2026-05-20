@@ -4,7 +4,6 @@ from django.utils.translation import gettext as _
 from django.contrib.auth import get_user_model
 
 
-
 @admin.register(get_user_model())
 class UserAdmin(DjangoUserAdmin):
     fieldsets = (

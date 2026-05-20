@@ -3,12 +3,14 @@ from rest_framework import serializers
 from django.utils.translation import gettext as _
 
 
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ("id", "email", "password", "is_staff")
-        read_only_fields = ("id", "is_staff", )
+        read_only_fields = (
+            "id",
+            "is_staff",
+        )
         extra_kwargs = {
             "password": {
                 "write_only": True,
@@ -17,7 +19,6 @@ class UserSerializer(serializers.ModelSerializer):
                 "label": _("Password"),
             }
         }
-
 
     def create(self, validated_data):
         """Create user with encrypted password"""

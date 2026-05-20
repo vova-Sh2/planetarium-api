@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "planetarium",
-    "user"
+    "user",
 ]
 
 MIDDLEWARE = [
@@ -144,7 +144,7 @@ SPECTACULAR_SETTINGS = {
         "defaultModelRendering": "model",
         "defaultModelsExpandDepth": 2,
         "defaultModelExpandDepth": 2,
-    }
+    },
 }
 
 SIMPLE_JWT = {
